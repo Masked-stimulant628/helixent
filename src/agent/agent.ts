@@ -40,13 +40,6 @@ export class Agent {
 
   readonly options: Required<AgentOptions>;
 
-  private stringifyToolResult(result: unknown): string {
-    if (result === undefined) return "undefined";
-    if (result === null) return "null";
-    if (typeof result === "object") return JSON.stringify(result);
-    return String(result);
-  }
-
   /**
    * Creates a new agent.
    * @param name - The name of the agent.
@@ -118,30 +111,33 @@ export class Agent {
 
       if (assistantMessage.content.some((content) => content.type === "tool_use")) {
         // If there are tool calls, the agent needs to invoke the tools in parallel.
-        const toolCalls = assistantMessage.content
+        const pending = assistantMessage.content
           .filter((content) => content.type === "tool_use")
-          .map((content) => {
+          .map(async (content, index) => {
             const toolUse = content as ToolUseContent;
             const tool = this.tools?.find((t) => t.name === toolUse.name);
-            return { toolUse, tool };
-          })
-          .filter(({ tool }) => Boolean(tool)) as Array<{ toolUse: ToolUseContent; tool: Tool }>;
+            if (!tool) {
+              throw new Error(`Tool ${toolUse.name} not found`);
+            }
+            const result = await tool.invoke(toolUse.input);
+            return { index, toolUseId: toolUse.id, result };
+          });
 
-        const toolResults = await Promise.all(
-          toolCalls.map(async ({ toolUse, tool }) => ({
-            toolUse,
-            resultString: this.stringifyToolResult(await tool.invoke(toolUse.input)),
-          })),
-        );
+        const remaining = new Set(pending.map((_, i) => i));
 
-        for (const { toolUse, resultString } of toolResults) {
+        while (remaining.size > 0) {
+          const resolved = (await Promise.race(
+            [...remaining].map((i) => pending[i]),
+          ))!;
+          remaining.delete(resolved.index);
+
           const toolMessage: ToolMessage = {
             role: "tool",
             content: [
               {
                 type: "tool_result",
-                tool_use_id: toolUse.id,
-                content: resultString,
+                tool_use_id: resolved.toolUseId,
+                content: stringifyToolResult(resolved.result),
               },
             ],
           };
@@ -158,4 +154,11 @@ export class Agent {
   private _appendMessage(message: NonSystemMessage) {
     this.messages.push(message);
   }
+}
+
+function stringifyToolResult(result: unknown): string {
+  if (result === undefined) return "undefined";
+  if (result === null) return "null";
+  if (typeof result === "object") return JSON.stringify(result);
+  return String(result);
 }
