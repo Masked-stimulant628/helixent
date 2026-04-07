@@ -101,6 +101,7 @@ Helixent provides a **middleware** system that lets you observe and mutate the a
 | `beforeAgentStep` | At the start of each step, before the model is invoked |
 | `afterAgentStep` | At the end of each step, after all tool calls complete |
 | `beforeModel` | Before the model context is sent to the provider |
+| `afterModel` | After the model response is received |
 | `beforeToolUse` | Immediately before a tool is invoked |
 | `afterToolUse` | Immediately after a tool invocation resolves |
 
