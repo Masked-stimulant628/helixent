@@ -7,5 +7,5 @@ marked.setOptions({
 });
 
 export function Markdown({ children }: { children: string }) {
-  return <Text>{marked(children)}</Text>;
+  return <Text>{marked(children).trimEnd()}</Text>;
 }
