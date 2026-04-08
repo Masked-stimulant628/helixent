@@ -2,6 +2,7 @@ import { join } from "path";
 
 import { Agent } from "@/agent";
 import { createSkillsMiddleware } from "@/agent/skills/skills-middleware";
+import { createTodoSystem } from "@/agent/todos/todos";
 import type { Model, NonSystemMessage } from "@/foundation";
 
 import { bashTool } from "../tools/bash";
@@ -32,6 +33,8 @@ export async function createCodingAgent({
       ],
     });
   }
+  const { tool: todoTool, middleware: todoMiddleware } = createTodoSystem();
+
   return new Agent({
     model,
     prompt: `<agent name="Helixent" role="leading_agent" description="A coding agent">
@@ -46,7 +49,7 @@ Use the given tools and skills to perform parallel/sequential operations and sol
 </notes>
 `,
     messages,
-    tools: [bashTool, readFileTool, writeFileTool, strReplaceTool],
-    middlewares: [createSkillsMiddleware(skillsDirs)],
+    tools: [bashTool, readFileTool, writeFileTool, strReplaceTool, todoTool],
+    middlewares: [createSkillsMiddleware(skillsDirs), todoMiddleware],
   });
 }
