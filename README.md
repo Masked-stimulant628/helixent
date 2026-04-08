@@ -2,6 +2,10 @@
 
 Helixent is a small library for building **ReAct-style** agent loops based on the **Bun** stack.
 
+## Demo
+
+https://github.com/user-attachments/assets/4ad89f14-e338-43e4-82ce-91cb83d58be2
+
 ## Quick Start (CLI mode)
 
 This section shows how to build Helixent from source and link the `helixent` CLI into your global PATH on **macOS**.
