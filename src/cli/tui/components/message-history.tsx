@@ -1,15 +1,22 @@
 import { Box, Text } from "ink";
-import Spinner from "ink-spinner";
 
 import type { AssistantMessage, NonSystemMessage, ToolMessage, ToolUseContent, UserMessage } from "@/foundation";
 
 import { currentTheme } from "../themes";
+import {
+  buildTodoSnapshots,
+  buildToolUses,
+  getCurrentTodo,
+  getNextTodo,
+  snapshotKey,
+  type TodoItemView,
+} from "../todo-view";
 
 import { Markdown } from "./markdown";
 
 export function MessageHistory({ messages }: { messages: NonSystemMessage[]; streaming: boolean }) {
   const todoSnapshots = buildTodoSnapshots(messages);
-  const latestTodoSnapshotKey = getLatestTodoSnapshotKey(messages);
+  const toolUses = buildToolUses(messages);
 
   return (
     <Box flexDirection="column" rowGap={1} overflowY="visible" width="100%">
@@ -23,12 +30,11 @@ export function MessageHistory({ messages }: { messages: NonSystemMessage[]; str
                 key={index}
                 message={message}
                 todoSnapshots={todoSnapshots}
-                latestTodoSnapshotKey={latestTodoSnapshotKey}
                 messageIndex={index}
               />
             );
           case "tool":
-            return <ToolMessageItem key={index} message={message} />;
+            return <ToolMessageItem key={index} message={message} toolUses={toolUses} />;
           default:
             return null;
         }
@@ -53,12 +59,10 @@ export function UserMessageItem({ message }: { message: UserMessage }) {
 export function AssistantMessageItem({
   message,
   todoSnapshots,
-  latestTodoSnapshotKey,
   messageIndex,
 }: {
   message: AssistantMessage;
   todoSnapshots: Map<string, TodoItemView[]>;
-  latestTodoSnapshotKey: string | null;
   messageIndex: number;
 }) {
   return (
@@ -78,15 +82,13 @@ export function AssistantMessageItem({
             }
             return null;
           case "tool_use":
-            const key = snapshotKey(messageIndex, i);
             return (
               <Box key={i} columnGap={1}>
                 <Text color={currentTheme.colors.secondaryText}>⏺</Text>
                 <Box flexDirection="column">
                   <ToolUseContentItem
                     content={content}
-                    todos={todoSnapshots.get(key)}
-                    animate={key === latestTodoSnapshotKey}
+                    todos={todoSnapshots.get(snapshotKey(messageIndex, i))}
                   />
                 </Box>
               </Box>
@@ -102,11 +104,9 @@ export function AssistantMessageItem({
 export function ToolUseContentItem({
   content,
   todos,
-  animate = false,
 }: {
   content: ToolUseContent;
   todos?: TodoItemView[];
-  animate?: boolean;
 }) {
   switch (content.name) {
     case "bash":
@@ -126,22 +126,21 @@ export function ToolUseContentItem({
         </Box>
       );
     case "todo_write": {
-      const input = toTodoWriteInput(content.input);
-      const visibleTodos = todos ?? input.todos;
+      const visibleTodos = todos;
+      const currentTodo = getCurrentTodo(visibleTodos);
+      const nextTodo = getNextTodo(visibleTodos);
+      const summaryTodo = currentTodo ?? nextTodo;
+      const completedCount = visibleTodos?.filter((todo) => todo.status === "completed").length ?? 0;
+      const pendingCount = visibleTodos?.filter((todo) => todo.status === "pending").length ?? 0;
 
       return (
         <Box flexDirection="column">
-          <Text>{input.merge ? "Update todo list" : "Create todo list"}</Text>
-          {Array.isArray(visibleTodos) &&
-            visibleTodos.map((todo, i) => (
-              <TodoListItem
-                key={i}
-                prefix={i === 0 ? "└─ " : "   "}
-                status={todo.status}
-                content={todo.content}
-                animate={animate}
-              />
-            ))}
+          <Text>{summaryTodo ? `Working on: ${summaryTodo.content}` : "Todo list complete"}</Text>
+          {(completedCount > 0 || pendingCount > 0) && (
+            <Text color={currentTheme.colors.secondaryText}>
+              └─ {completedCount} completed{pendingCount > 0 ? `, ${pendingCount} pending` : ""}
+            </Text>
+          )}
         </Box>
       );
     }
@@ -155,10 +154,23 @@ export function ToolUseContentItem({
   }
 }
 
-export function ToolMessageItem({ message }: { message: ToolMessage }) {
+export function ToolMessageItem({
+  message,
+  toolUses,
+}: {
+  message: ToolMessage;
+  toolUses: Map<string, ToolUseContent>;
+}) {
+  const visibleContent = message.content.flatMap((content) => {
+    const toolUse = toolUses.get(content.tool_use_id);
+    const rendered = summarizeToolResult(content.content, toolUse);
+    return rendered ? [{ ...content, content: rendered }] : [];
+  });
+  if (visibleContent.length === 0) return null;
+
   return (
     <Box flexDirection="column" width="100%">
-      {message.content.map((content, i) => (
+      {visibleContent.map((content, i) => (
         <Box key={i} columnGap={1}>
           <Text color={currentTheme.colors.secondaryText}>✓</Text>
           <Box flexDirection="column">
@@ -170,133 +182,22 @@ export function ToolMessageItem({ message }: { message: ToolMessage }) {
   );
 }
 
-function TodoListItem({
-  prefix,
-  status,
-  content,
-  animate,
-}: {
-  prefix: string;
-  status?: string;
-  content?: string;
-  animate?: boolean;
-}) {
-  return (
-    <Box>
-      <Text color={currentTheme.colors.secondaryText}>{prefix}</Text>
-      <TodoStatusIndicator status={status} animate={animate} />
-      <Text color={currentTheme.colors.secondaryText}> {content ?? ""}</Text>
-    </Box>
-  );
-}
+function summarizeToolResult(content: string, toolUse?: ToolUseContent) {
+  if (!toolUse) return content;
+  if (content.startsWith("Error:")) return content;
 
-function TodoStatusIndicator({ status, animate }: { status?: string; animate?: boolean }) {
-  switch (status) {
-    case "pending":
-      return <Text color={currentTheme.colors.secondaryText}>○</Text>;
-    case "in_progress":
-      return animate ? (
-        <Text color={currentTheme.colors.primary}>
-          <Spinner type="line" />
-        </Text>
-      ) : (
-        <Text color={currentTheme.colors.primary}>◐</Text>
-      );
-    case "completed":
-      return <Text color="green">✓</Text>;
-    case "cancelled":
-      return <Text color="red">✕</Text>;
+  switch (toolUse.name) {
+    case "todo_write":
+      return null;
+    case "read_file":
+      return null;
+    case "bash":
+      return null;
+    case "write_file":
+      return null;
+    case "str_replace":
+      return null;
     default:
-      return <Text color={currentTheme.colors.secondaryText}>?</Text>;
+      return content;
   }
-}
-
-type TodoItemView = {
-  id: string;
-  content: string;
-  status: string;
-};
-
-function snapshotKey(messageIndex: number, contentIndex: number) {
-  return `${messageIndex}:${contentIndex}`;
-}
-
-function getLatestTodoSnapshotKey(messages: NonSystemMessage[]) {
-  for (let messageIndex = messages.length - 1; messageIndex >= 0; messageIndex--) {
-    const message = messages[messageIndex];
-    if (!message || message.role !== "assistant") continue;
-
-    for (let contentIndex = message.content.length - 1; contentIndex >= 0; contentIndex--) {
-      const content = message.content[contentIndex];
-      if (content && content.type === "tool_use" && content.name === "todo_write") {
-        return snapshotKey(messageIndex, contentIndex);
-      }
-    }
-  }
-
-  return null;
-}
-
-function buildTodoSnapshots(messages: NonSystemMessage[]): Map<string, TodoItemView[]> {
-  const snapshots = new Map<string, TodoItemView[]>();
-  let store: TodoItemView[] = [];
-
-  for (const [messageIndex, message] of messages.entries()) {
-    if (message.role !== "assistant") continue;
-
-    for (const [contentIndex, content] of message.content.entries()) {
-      if (content.type !== "tool_use" || content.name !== "todo_write") continue;
-
-      const input = toTodoWriteInput(content.input);
-      store = applyTodoWrite(store, input);
-      snapshots.set(snapshotKey(messageIndex, contentIndex), store);
-    }
-  }
-
-  return snapshots;
-}
-
-function toTodoWriteInput(input: Record<string, unknown>): {
-  merge: boolean;
-  todos: TodoItemView[];
-} {
-  const merge = input.merge === true;
-  const todos = Array.isArray(input.todos)
-    ? input.todos.flatMap((item) => {
-        if (!item || typeof item !== "object") return [];
-
-        const candidate = item as Record<string, unknown>;
-        if (typeof candidate.id !== "string") return [];
-        if (typeof candidate.content !== "string") return [];
-        if (typeof candidate.status !== "string") return [];
-
-        return [
-          {
-            id: candidate.id,
-            content: candidate.content,
-            status: candidate.status,
-          },
-        ];
-      })
-    : [];
-
-  return { merge, todos };
-}
-
-function applyTodoWrite(store: TodoItemView[], input: { merge: boolean; todos: TodoItemView[] }) {
-  if (!input.merge) {
-    return [...input.todos];
-  }
-
-  const next = [...store];
-  for (const item of input.todos) {
-    const index = next.findIndex((todo) => todo.id === item.id);
-    if (index >= 0) {
-      next[index] = item;
-    } else {
-      next.push(item);
-    }
-  }
-
-  return next;
 }
