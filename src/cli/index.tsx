@@ -1,3 +1,5 @@
+import { join } from "node:path";
+
 import { Command } from "commander";
 import { render } from "ink";
 
@@ -50,7 +52,15 @@ if (args.length > 0) {
     },
   });
 
-  const agent = await createCodingAgent({ model });
+  const agent = await createCodingAgent({
+    model,
+    skillsDirs: [
+      join(process.cwd(), ".agents/skills"),
+      join(process.cwd(), ".helixent/skills"),
+      "~/.agents/skills",
+      "~/.helixent/skills",
+    ],
+  });
 
   render(
     <AgentLoopProvider agent={agent}>

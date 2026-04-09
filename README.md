@@ -1,4 +1,4 @@
-<img width="2048" height="868" alt="image" src="https://github.com/user-attachments/assets/9b4b7b72-45f4-4ae5-8fd5-5fb48d615481" />
+![](https://github.com/user-attachments/assets/9b4b7b72-45f4-4ae5-8fd5-5fb48d615481)
 
 # Helixent
 
@@ -15,13 +15,15 @@ https://github.com/user-attachments/assets/4ad89f14-e338-43e4-82ce-91cb83d58be2
 
 ## Index
 
-- [Install (npm / npx)](#install-npm--npx)
-- [Quick Start (CLI mode)](#quick-start-cli-mode)
+- [Get Started](#get-started)
+  - [Key Features](#key-features)
+  - [Quick Start](#quick-start)
+- [Develop & Build from Source](#develop--build-from-source)
   - [1. Install dependencies](#1-install-dependencies)
   - [2. Build the binary](#2-build-the-binary)
   - [3. Symlink into your PATH (macOS)](#3-symlink-into-your-path-macos)
   - [4. Run the CLI](#4-run-the-cli)
-- [How to configurate models](#how-to-configurate-models)
+- [Model Configuration](#model-configuration)
 - [Architecture](#architecture)
   - [Layer 1: Foundation](#layer-1-foundation)
   - [Layer 2: Agent Loop](#layer-2-agent-loop)
@@ -33,9 +35,33 @@ https://github.com/user-attachments/assets/4ad89f14-e338-43e4-82ce-91cb83d58be2
 - [Why Bun?](#why-bun)
 - [Roadmap](#roadmap)
 
-## Install (npm / npx)
+## Get Started
 
-You can install and run the latest `helixent` CLI without building from source:
+### Key Features
+
+- **Model foundation**
+  - A stable core `Model` abstraction plus provider-facing contracts, designed to keep model integrations clean and reusable.
+  - Multiple models are supported.
+- **Agent loop (middleware-ready)**
+  - A reusable ReAct-style agent loop.
+  - First-class middleware support for extending behavior (state, tool orchestration, skills, etc.).
+  - See [Middleware](#middleware)
+- **Skills support**
+  - [Standard agent skill](https://agentskills.io/) is supported.
+  - Skills are discovered and loaded from:
+    - `~/.agents/skills`
+    - `~/.helixent/skills`
+    - `${current_project}/.agents/skills`
+    - `${current_project}/.helixent/skills`
+    - Duplicated skill names in different folders are also allowed
+
+- **Long-term Memory**
+  - **Project root `AGENTS.md` support**: if an `AGENTS.md` exists at the repository root, it’s automatically picked up as project guidance.
+- **Coding agent**
+  - A coding-focused agent layer with practical tools (e.g. `bash`, `read_file`, `write_file`, `str_replace`, etc.) for developer workflows.
+  - Todo-list-based **plan mode** is supported.
+- **CLI**
+  - A CLI (with TUI support) for running agents interactively and iterating quickly.
 
 ### Quick Start
 
@@ -46,14 +72,14 @@ helixent
 helixent --help
 ```
 
-### Run via npx (no install)
+### Run via npx (no install required)
 
 ```bash
 cd path/to/your/project
 npx helixent@latest
 ```
 
-## Quick Start - How to develop and build from source
+## Develop & Build from Source
 
 This section shows how to build Helixent from source and link the `helixent` CLI into your global PATH on **macOS**.
 
@@ -98,7 +124,7 @@ Follow the prompts to complete the initial setup. Your config file will be autom
 
 - `~/.helixent/config.yaml`
 
-## How to configurate models
+## Model Configuration
 
 Helixent stores your CLI configuration in:
 
@@ -255,9 +281,7 @@ Among JS runtimes, we chose **Bun** specifically because:
 
 ## Roadmap
 
-- **TODO List** — Built-in task tracking so the agent can plan, break down, and track progress on multi-step work.
 - **Sub-agent** — Spawn child agents from within a run to handle subtasks independently, each with their own context and tool set.
 - **Agent Team** — Multi-agent collaboration where agents can coordinate, delegate, and share results to tackle complex problems together.
-- **CLI** — A command-line interface layer for running Helixent agents directly from the terminal with interactive I/O.
 - **Print Mode** — A Claude Code-style rendering mode that streams the agent's thinking, tool calls, and outputs in a rich, human-friendly terminal UI.
 - **Sessioning** - A local file based session store for storing the agent's context and history.

@@ -13,12 +13,7 @@ import { writeFileTool } from "../tools/write-file";
 export async function createCodingAgent({
   model,
   cwd = process.cwd(),
-  skillsDirs = [
-    join(process.cwd(), "skills"),
-    join(process.cwd(), ".agents/skills"),
-    "~/.helixent/skills",
-    "~/.agents/skills",
-  ],
+  skillsDirs = [join(process.cwd(), ".agents/skills")],
 }: {
   model: Model;
   cwd?: string;
