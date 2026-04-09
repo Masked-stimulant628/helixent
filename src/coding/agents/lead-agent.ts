@@ -6,7 +6,11 @@ import { createSkillsMiddleware } from "@/agent/skills/skills-middleware";
 import { createTodoSystem } from "@/agent/todos/todos";
 import type { Model, NonSystemMessage, ToolUseContent } from "@/foundation";
 
+import { applyPatchTool } from "../tools/apply-patch";
 import { bashTool } from "../tools/bash";
+import { globSearchTool } from "../tools/glob-search";
+import { grepSearchTool } from "../tools/grep-search";
+import { listFilesTool } from "../tools/list-files";
 import { readFileTool } from "../tools/read-file";
 import { strReplaceTool } from "../tools/str-replace";
 import { writeFileTool } from "../tools/write-file";
@@ -43,7 +47,7 @@ export async function createCodingAgent({
   if (askUser) {
     middlewares.push(
       createApprovalMiddleware({
-        requiresApproval: ["bash", "write_file", "str_replace"],
+        requiresApproval: ["bash", "write_file", "str_replace", "apply_patch"],
         askUser,
       }),
     );
@@ -63,7 +67,17 @@ Use the given tools and skills to perform parallel/sequential operations and sol
 </notes>
 `,
     messages,
-    tools: [bashTool, readFileTool, writeFileTool, strReplaceTool, todoTool],
+    tools: [
+      bashTool,
+      listFilesTool,
+      globSearchTool,
+      grepSearchTool,
+      readFileTool,
+      writeFileTool,
+      strReplaceTool,
+      applyPatchTool,
+      todoTool,
+    ],
     middlewares,
   });
 }
