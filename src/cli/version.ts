@@ -1,2 +1,4 @@
-export const HELIXENT_NAME = "helixent" as const;
-export const HELIXENT_VERSION = "1.0.2" as const;
+import pkg from "../../package.json" with { type: "json" };
+
+export const HELIXENT_NAME = pkg.name;
+export const HELIXENT_VERSION = pkg.version;
