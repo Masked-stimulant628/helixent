@@ -27,7 +27,7 @@ https://github.com/user-attachments/assets/4ad89f14-e338-43e4-82ce-91cb83d58be2
   - [Add a New Model](#add-a-new-model)
   - [Remove a Model](#remove-a-model)
   - [Set the Default Model](#set-the-default-model)
-- [How to Contribute to Helixent](#how-to-contribute-to-helixent)
+- [How to Contribute](#how-to-contribute-to-helixent)
   - [Develop & Build from Source](#develop-build-from-source)
     - [1. Install Dependencies](#1-install-dependencies)
     - [2. Run in Development Mode](#2-run-in-development-mode)
@@ -139,7 +139,7 @@ helixent config model set-default
 
 ---
 
-## How to Contribute to Helixent
+## How to Contribute
 
 ### Develop & Build from Source
 
@@ -168,6 +168,17 @@ bun run build:bin
 After the build completes, you should have:
 
 - `dist/bin/helixent`
+
+#### 4. Before Commit
+
+Make sure your changes pass all the linting, type checking, and tests by running:
+
+```bash
+bun run check
+```
+
+> This is also run automatically by the pre-commit hook. This also causes the committing process a little bit slower,
+> but we think it's worth it. After all, in an AI-dominated GitHub universe, we should be able to handle the last mile of code quality.
 
 ### Architecture
 
