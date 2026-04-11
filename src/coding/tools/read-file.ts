@@ -56,17 +56,6 @@ export const readFileTool = defineTool({
     const limited = truncateText(numbered, maxChars ?? DEFAULT_MAX_CHARS);
     const isWholeFileRead = !startLine && !endLine;
 
-    return okToolResult(
-      isWholeFileRead ? `Read file: ${path}` : `Read lines ${start + 1}-${start + selected.length} from ${path}`,
-      {
-        path,
-        startLine: start + 1,
-        endLine: start + selected.length,
-        totalLines: lines.length,
-        truncated: limited.truncated,
-        content: isWholeFileRead && !limited.truncated ? text : limited.text,
-        contentFormat: isWholeFileRead && !limited.truncated ? "raw" : "numbered_lines",
-      },
-    );
+    return isWholeFileRead && !limited.truncated ? text : limited.text;
   },
 });

@@ -26,14 +26,7 @@ describe("readFileTool", () => {
       path: filePath,
     });
 
-    expect(result).toMatchObject({
-      ok: true,
-      data: {
-        path: filePath,
-        content: "a\nb\n",
-        contentFormat: "raw",
-      },
-    });
+    expect(result).toBe("a\nb\n");
   });
 
   test("returns numbered lines for ranged reads", async () => {
@@ -47,18 +40,8 @@ describe("readFileTool", () => {
       endLine: 3,
     });
 
-    expect(result).toMatchObject({
-      ok: true,
-      data: {
-        startLine: 2,
-        endLine: 3,
-        contentFormat: "numbered_lines",
-      },
-    });
-    if (result.ok) {
-      expect(result.data.content).toContain("2: second");
-      expect(result.data.content).toContain("3: third");
-    }
+    expect(result).toContain("2: second");
+    expect(result).toContain("3: third");
   });
 
   test("returns structured error for invalid range", async () => {
