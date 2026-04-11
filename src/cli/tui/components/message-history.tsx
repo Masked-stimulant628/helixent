@@ -54,7 +54,7 @@ export const MessageHistoryItem = memo(function MessageHistoryItem({
     case "assistant":
       return <AssistantMessageItem message={message} todoSnapshots={todoSnapshots} messageIndex={messageIndex} />;
     case "tool":
-      return <ToolMessageItem message={message} toolUses={toolUses} />;
+      return null;
     default:
       return null;
   }

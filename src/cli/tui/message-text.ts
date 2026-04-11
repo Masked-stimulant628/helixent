@@ -19,7 +19,7 @@ export function messageToPlainText(message: NonSystemMessage): string | null {
     case "assistant":
       return assistantMessageText(message);
     case "tool":
-      return toolMessageText(message);
+      return null;
     default:
       return null;
   }
