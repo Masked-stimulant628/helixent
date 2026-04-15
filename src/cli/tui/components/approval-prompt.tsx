@@ -31,16 +31,13 @@ export function ApprovalPrompt({
   onDecision: (decision: ApprovalDecision) => void;
 }) {
   const options = useMemo(
-    () =>
-      supportProjectWideAllow
-        ? ALL_OPTIONS
-        : ALL_OPTIONS.filter((o) => o.decision !== "allow_always_project"),
+    () => (supportProjectWideAllow ? ALL_OPTIONS : ALL_OPTIONS.filter((o) => o.decision !== "allow_always_project")),
     [supportProjectWideAllow],
   );
 
   const [index, setIndex] = useState(0);
 
-  const shortcutHint = supportProjectWideAllow ? "y / a / n or 1 / 2 / 3" : "y / n or 1 / 2";
+  const shortcutHint = supportProjectWideAllow ? "y / a / n" : "y / n";
 
   useInput((input, key) => {
     if (key.upArrow) {
