@@ -56,6 +56,9 @@ export const readFileTool = defineTool({
     const limited = truncateText(numbered, maxChars ?? DEFAULT_MAX_CHARS);
     const isWholeFileRead = !startLine && !endLine;
 
+    // Do NOT return a structured result here.
+    // Instead, return the raw text.
+    // TODO: add line numbers to the result with padding to the left.
     return isWholeFileRead && !limited.truncated ? text : limited.text;
   },
 });
